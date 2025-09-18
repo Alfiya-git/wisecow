@@ -76,6 +76,9 @@ jobs:
           kubectl rollout status deployment/wisecow-deployment
           kubectl get pods -o wide
 
-      - name: Expose Service URL
+      - name: Test Wisecow endpoint
         run: |
-          minikube service wisecow-service --url
+          URL=$(minikube service wisecow-service --url)
+          echo "Service URL: $URL"
+          curl -v $URL
+
