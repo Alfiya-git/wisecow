@@ -66,7 +66,7 @@ jobs:
       # Apply ClusterIssuer (self-signed)
       - name: Apply ClusterIssuer
         run: |
-          kubectl apply -f k8s/clusterissuer-selfsigned.yaml
+          kubectl apply -f clusterissuer-selfsigned.yaml
 
       # Deploy Wisecow app + service
       - name: Deploy Wisecow
