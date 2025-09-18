@@ -1,23 +1,28 @@
-FROM debian:bullseye
+FROM ubuntu:20.04
 
-# Install dependencies (prerequisites)
+# Avoid interactive prompts during apt-get
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install prerequisites: cowsay, fortune, netcat
 RUN apt-get update && apt-get install -y \
-    fortune \
+    bash \
+    coreutils \
     cowsay \
+    fortune-mod \
     netcat \
- && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Copy the script
-COPY wisecow.sh .
+# Copy project files
+COPY . /app
 
-# Make it executable
-RUN chmod +x wisecow.sh
+# Ensure permissions
+RUN chmod -R 755 /app
 
-# Expose the port Wisecow uses
+# Expose server port
 EXPOSE 4499
 
-# Run the app
+# Run script
 CMD ["./wisecow.sh"]
