@@ -1,20 +1,16 @@
-FROM debian:bookworm-slim
+FROM ubuntu:20.04
 
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install dependencies: fortune + cowsay + nc
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends fortune-mod cowsay netcat-openbsd && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+    bash \
+    coreutils \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY wisecow.sh /app/wisecow.sh
-RUN chmod +x /app/wisecow.sh
+
+COPY . /app
+
+RUN chmod -R 777 /app
 
 EXPOSE 4499
 
-# Run as non-root
-RUN useradd -m appuser
-USER appuser
-
-CMD ["/app/wisecow.sh"]
+CMD ["./wisecow.sh"]
