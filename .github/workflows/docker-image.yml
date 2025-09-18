@@ -1,0 +1,77 @@
+name: CI/CD for Wisecow
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout repo
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      # Build and push Docker image
+      # - name: Build and Push Docker image
+      #   uses: docker/build-push-action@v5
+      #   with:
+      #     context: .
+      #     push: true
+      #     tags: |
+      #       ${{ secrets.DOCKER_USERNAME }}/wisecow:latest
+      #       ${{ secrets.DOCKER_USERNAME }}/wisecow:${{ github.sha }}
+
+      - name: Build and Push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            alfiyazabir05/wisecow:latest
+            alfiyazabir05/wisecow:${{ github.sha }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout repo again (for manifests)
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up kubectl
+      - name: Set up Kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: 'v1.33.1'
+
+      # Set up Minikube (inside GitHub runner)
+      - name: Start Minikube
+        uses: medyagh/setup-minikube@latest
+
+      # Deploy Wisecow
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f wisecow-deployment.yaml
+          kubectl apply -f wisecow-service.yaml
+
+      # # Verify Deployment
+      # - name: Verify rollout
+      #   run: |
+      #     kubectl rollout status deployment/wisecow-deployment
+      #     kubectl get pods -o wide
