@@ -1,16 +1,23 @@
-FROM ubuntu:20.04
+FROM debian:bullseye
 
+# Install dependencies (prerequisites)
 RUN apt-get update && apt-get install -y \
-    bash \
-    coreutils \
-    && rm -rf /var/lib/apt/lists/*
+    fortune \
+    cowsay \
+    netcat \
+ && rm -rf /var/lib/apt/lists/*
 
+# Set working directory
 WORKDIR /app
 
-COPY . /app
+# Copy the script
+COPY wisecow.sh .
 
-RUN chmod -R 777 /app
+# Make it executable
+RUN chmod +x wisecow.sh
 
+# Expose the port Wisecow uses
 EXPOSE 4499
 
+# Run the app
 CMD ["./wisecow.sh"]
