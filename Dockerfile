@@ -1,17 +1,18 @@
 FROM ubuntu:20.04
 
 # Avoid interactive prompts during apt-get
-ENV DEBIAN_FRONTEND=noninteractive
+#ENV DEBIAN_FRONTEND=noninteractive
 
 # Install prerequisites: cowsay, fortune, netcat
 RUN apt-get update && apt-get install -y \
-    bash \
-    coreutils \
     cowsay \
-    fortune-mod \
-    netcat \
-    && rm -rf /var/lib/apt/lists/*
+    fortune \
+    netcat-openbsd \
+    && rm -rf /var/lib/apt/lists/* 
 
+# Add /usr/games to PATH (where cowsay/fortune live)
+ENV PATH="$PATH:/usr/games"
+   
 # Set working directory
 WORKDIR /app
 
@@ -19,7 +20,7 @@ WORKDIR /app
 COPY . /app
 
 # Ensure permissions
-RUN chmod -R 755 /app
+RUN chmod +x /app/wisecow.sh
 
 # Expose server port
 EXPOSE 4499
