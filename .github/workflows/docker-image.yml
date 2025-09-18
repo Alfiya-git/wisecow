@@ -27,23 +27,14 @@ jobs:
           password: ${{ secrets.DOCKER_TOKEN }}
 
       # Build and push Docker image
-      # - name: Build and Push Docker image
-      #   uses: docker/build-push-action@v5
-      #   with:
-      #     context: .
-      #     push: true
-      #     tags: |
-      #       ${{ secrets.DOCKER_USERNAME }}/wisecow:latest
-      #       ${{ secrets.DOCKER_USERNAME }}/wisecow:${{ github.sha }}
-
       - name: Build and Push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: |
-            alfiyazabir05/wisecow:latest
-            alfiyazabir05/wisecow:${{ github.sha }}
+            ${{ secrets.DOCKER_USERNAME }}/wisecow:latest
+            ${{ secrets.DOCKER_USERNAME }}/wisecow:${{ github.sha }}
 
   deploy:
     needs: build-and-push
@@ -60,19 +51,42 @@ jobs:
         with:
           version: 'v1.33.1'
 
-      # Set up Minikube (inside GitHub runner)
+      # Start Minikube (inside GitHub runner)
       - name: Start Minikube
         uses: medyagh/setup-minikube@latest
 
-      # Deploy Wisecow
-      - name: Deploy to Kubernetes
+      # Install cert-manager
+      - name: Install cert-manager
+        run: |
+          kubectl apply --validate=false -f https://github.com/cert-manager/cert-manager/releases/latest/download/cert-manager.yaml
+          kubectl -n cert-manager rollout status deploy/cert-manager
+          kubectl -n cert-manager rollout status deploy/cert-manager-webhook
+          kubectl -n cert-manager rollout status deploy/cert-manager-cainjector
+
+      # Apply ClusterIssuer (self-signed)
+      - name: Apply ClusterIssuer
+        run: |
+          kubectl apply -f k8s/clusterissuer-selfsigned.yaml
+
+      # Deploy Wisecow app + service
+      - name: Deploy Wisecow
         run: |
           kubectl apply -f wisecow-deployment.yaml
           kubectl apply -f wisecow-service.yaml
 
-      # Verify Deployment
-      - name: Verify rollout
+      # Apply Certificate
+      - name: Apply Certificate
+        run: |
+          kubectl apply -f certificate-wisecow.yaml
+
+      # Apply Ingress
+      - name: Apply Ingress
+        run: |
+          kubectl apply -f wisecow-ingress.yaml
+
+      # Verify TLS + rollout
+      - name: Verify rollout & TLS
         run: |
           kubectl rollout status deployment/wisecow-deployment
-          kubectl get pods -o wide
-
+          kubectl get certificate wisecow-tls -o yaml
+          kubectl describe ingress wisecow-ingress
