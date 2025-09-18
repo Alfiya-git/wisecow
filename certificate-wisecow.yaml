@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: wisecow-tls
+  namespace: default
+spec:
+  secretName: wisecow-tls-secret
+  dnsNames:
+    - wisecow.local   # or use nip.io like wisecow.127.0.0.1.nip.io
+  issuerRef:
+    name: selfsigned-issuer
+    kind: ClusterIssuer

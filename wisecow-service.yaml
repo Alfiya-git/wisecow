@@ -5,9 +5,9 @@ metadata:
 spec:
   selector:
     app: wisecow
-  type: NodePort   # Change to LoadBalancer if using cloud provider
+  type: ClusterIP   # Change to LoadBalancer if using cloud provider
   ports:
     - protocol: TCP
       port: 4499       # Cluster-internal port
       targetPort: 4499 # Container port
-      nodePort: 31499  # Host port accessible outside the cluster
+      #nodePort: 31499  # Host port accessible outside the cluster
